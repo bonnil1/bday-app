@@ -1,0 +1,67 @@
+{
+    "friends": [
+        {
+            "name": "Sarah Kim",
+            "birthday": "November 25, 1994",
+            "color": "teal",
+            "font": "sans",
+            "photo": "kim.jpeg"
+        },
+        {
+            "name": "Sarah Chen",
+            "birthday": "February 9, 1995",
+            "color": "blue",
+            "font": "serif",
+            "photo": "chen.jpeg" 
+        },
+        {
+            "name": "Jolinna Nguyen",
+            "birthday": "April 6, 1995",
+            "color": "indigo",
+            "font": "mono",
+            "photo": "jo.jpeg"
+        },
+        {
+            "name": "Emily Hui",
+            "birthday": "June, 11, 1995",
+            "color": "orange",
+            "font": "sans",
+            "photo": "em.jpeg"
+        },
+        {
+            "name": "Leanne Hsu",
+            "birthday": "July 14, 1995",
+            "color": "amber",
+            "font": "serif",
+            "photo": "leanne.jpeg"
+        },
+        {
+            "name": "Mujghan Afschar",
+            "birthday": "August 15, 1995",
+            "color": "pink",
+            "font": "mono",
+            "photo": "muj.jpeg"
+        },
+        {
+            "name": "Crystal Lee",
+            "birthday": "September 16, 1995",
+            "color": "green",
+            "font": "sans",
+            "photo": "crystal.jpeg"
+        },
+        {
+            "name": "Bonnie Liu",
+            "birthday": "November 1, 1995",
+            "color": "cyan",
+            "font": "serif",
+            "photo": "bon.jpeg"
+        },
+        {
+            "name": "Cherry Lo",
+            "birthday": "November 8, 1995",
+            "color": "red",
+            "font": "mono",
+            "photo": "cherry.jpeg"
+        }
+    ]
+}

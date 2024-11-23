@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports: 
+      - "3000:3000"
+    networks:
+      - birthday-network
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports: 
+      - "5001:5001"
+    networks:
+      - birthday-network
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: birthday
+      MYSQL_DB: mydb
+    depends_on:
+      - mysql
+    command: ["sh", "-c", "while ! nc -z mysql 3306; do sleep 1; done; node server.js"]  # Wait for MySQL to be ready
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: birthday
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3307:3306"
+    networks:
+      - birthday-network
+
+networks:
+  birthday-network:
+    driver: bridge
