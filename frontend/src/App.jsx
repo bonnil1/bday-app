@@ -9,13 +9,11 @@ function App() {
   useEffect(() => {
     setData(friends.friends)
   }, [])
-  console.log("hitting frontend")
 
   const sendFriends = async () => {
-    console.log("hitting send friends")
     try {
       console.log("before fetch")
-      const response = await fetch("http://backend:5001/send-array", {
+      const response = await fetch("http://localhost:5001/send-array", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -35,7 +33,9 @@ function App() {
   return (
     <>
       <Birthday />
-      <button onClick={sendFriends} className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5 w-1/4'>Send Data to Database</button>
+      <div className='flex items-center justify-center'>
+        <button onClick={sendFriends} className='flex justify-center bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5 w-1/4'>Send Data to Database</button>
+      </div>
     </>
   )
 }

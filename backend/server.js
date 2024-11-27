@@ -23,6 +23,16 @@ const pool = createPool({
   queueLimit: 0
 });
 
+// Test MySQL connection
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('Error connecting to MySQL:', err);
+    return;
+  }
+  console.log('Successfully connected to MySQL!');
+  connection.release(); // Release the connection back to the pool
+});
+
 // Test route
 app.get('/friends', (req, res) => {
   res.send('Hello from the backend!');
@@ -31,7 +41,7 @@ app.get('/friends', (req, res) => {
 // API endpoint to handle data
 app.post('/send-array', (req, res) => {
   const dataArray = req.body.data;
-
+  
   if (!Array.isArray(dataArray) || dataArray.length === 0) {
     return res.status(400).json({ error: 'Invalid or empty data array' });
   }
