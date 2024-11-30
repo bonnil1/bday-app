@@ -1,30 +1,51 @@
 import React from 'react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Signup = () => {
 
-    const [formData, setFormData] = useState({})
-
-    const handleSignUp = async (user) => {
-        const response = await fetch("http://localhost:5001/new-user", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(user)
-        })
-        const data = await response.json()
-        console.log(data)
-        //navigate("/login")
-    }
+    const [formData, setFormData] = useState({
+        username: '',
+        password: '',
+        name: '',
+        birthday: '',
+        color: '',
+        photo: null
+    })
+    const [message, setMessage] = useState('')
+    const navigate = useNavigate()
 
     const handleChange = (event) => {
-        setFormData({...formData, [event.target.name]: event.target.value})
+        if (event.target.name === 'photo') {
+            setFormData({ ...formData,[event.target.name]: event.target.files[0]});
+        } else {
+            setFormData({...formData,[event.target.name]: event.target.value});
+        }
     }
 
     const handleSubmit = async (event) => {
-        event.preventDefault()
-        const submit = await handleSignUp(formData)
+        console.log("hitting handle submit");
+        event.preventDefault();
+
+        const form = new FormData();
+
+        for (const key in formData) {
+            form.append(key, formData[key]);
+        }
+
+        const response = await fetch("http://localhost:5001/new-user", {
+            method: "POST",
+            body: form
+        });
+
+        const data = await response.json();
+        console.log(data.message);
+
+        if (data.message === "Username already exists.") {
+            setMessage(data.message);
+        } else {
+            navigate("/login");
+        }
     }
 
     return (
@@ -33,70 +54,106 @@ const Signup = () => {
             <h1 className='text-4xl text-bold mt-5'>Sign up as a CV Friend: </h1>
             <form onSubmit={handleSubmit} className='mt-5 grid grid-cols-1 md:grid-cols-2 gap-3'>
                 <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Username:</label>
+                <label htmlFor='username' className='text-xl'>Username:</label>
                 <input
                     type='text'
-                    id='username'
-                    value={formData.username}
+                    name='username'
+                    onChange={handleChange}
+                    className='border border-black rounded mt-2 p-1'
+                />
+                {message === "Username already exists." ? (
+                    <h1 className='text-center text-red-500'>The username entered is already taken.</h1>
+                ) : (
+                    null
+                )}
+                </div>
+                <div className='flex flex-col'>
+                <label htmlFor='password' className='text-xl'>Password:</label>
+                <input
+                    type='text'
+                    name='password'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
                 </div>
                 <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Password:</label>
+                <label htmlFor='name' className='text-xl'>Name:</label>
                 <input
                     type='text'
-                    id='password'
-                    value={formData.password}
+                    name='name'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
                 </div>
                 <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Name:</label>
+                <label htmlFor='birthday' className='text-xl'>Birthday:</label>
                 <input
                     type='text'
-                    id='name'
-                    value={formData.name}
+                    name='birthday'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
                 </div>
                 <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Birthday:</label>
+                <label htmlFor='color' className='text-xl'>Color:</label>
                 <input
                     type='text'
-                    id='birthday'
-                    value={formData.birthday}
+                    name='color'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
                 </div>
                 <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Color:</label>
+                <label htmlFor='photo' className='text-xl'>Photo:</label>
                 <input
-                    type='text'
-                    id='color'
-                    value={formData.color}
+                    type='file'
+                    name='photo'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
+                {formData.photo && (
+                    <img
+                        src={URL.createObjectURL(formData.photo)} //temporary url to see photo
+                        alt="image of friend"
+                        className="mt-2"
+                        style={{ width: '100px', height: '150px', objectFit: 'cover' }}
+                    />
+                        )}
                 </div>
-                <div className='flex flex-col'>
-                <label htmlFor='input' className='text-xl'>Photo:</label>
-                <input
-                    type='text'
-                    id='photo'
-                    value={formData.photo}
-                    onChange={handleChange}
-                    className='border border-black rounded mt-2 p-1'
-                />
-                </div>
+                <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </form>
-            <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </div>
         </div>
     )
 }
 
 export default Signup
+
+/*
+    const handleSignUp = async (formData) => {
+        console.log("hitting handle signup")
+        const response = await fetch("http://localhost:5001/new-user", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(formData)
+        })
+        const data = await response.json()
+        console.log(data)
+        console.log(data.message)
+
+        if (data.message === "Username already exists.") {
+            setMessage(data.message)
+        } else {
+            navigate("/login")
+        }
+        
+    }
+
+    const handleSubmit = async (event) => {
+        console.log("hitting handle submit")
+        event.preventDefault()
+        await handleSignUp(formData)
+    }
+*/

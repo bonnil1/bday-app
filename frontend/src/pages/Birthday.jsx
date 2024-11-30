@@ -2,48 +2,56 @@ import React from 'react'
 import { useEffect, useState } from 'react'
 import data from '../assets/friends.json'
 
-const Birthday = () => {
+const Birthday = (props) => {
 
-    const [friends, setFriends] = useState([])
+    const [friend, setFriend] = useState({})
     const [input, setInput] = useState('')
     const [submitted, setSubmitted] = useState(false)
-    const [matchedFriend, setMatchedFriend] = useState(null)
-    const [match, setMatch] = useState(null)
+    const [match, setMatch] = useState(false)
 
-    useEffect(() => {
-        setFriends(data.friends)
-    }, [])
+    const getFriend = async () => {
+        console.log("hitting get friend")
 
-    const handleChange = (e) => {
-        setInput(e.target.value)
-    }
+        const response = await fetch("http://localhost:5001/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name: input })
+        })
+        const data = await response.json()
+        console.log(data)
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        setSubmitted(true)
-        const posresponse = friends.find(friend => friend.name.toLowerCase() === input.toLowerCase())
-        
-        if (posresponse) {
-            setMatchedFriend(posresponse)
-            setMatch(true)
-        } else {
-            setMatch(false)
+        if (Array.isArray(data)) {
+            setMatch(true);
+            setFriend(data);
+        } else if (data && typeof data === 'object') {
+            setMatch(false);
         }
     }
 
+    const handleChange = (event) => {
+        setInput(event.target.value)
+    }
+
+    const handleSubmit = async (event) => {
+        event.preventDefault()
+        setSubmitted(true)
+        await getFriend(input);
+    }
+
     return (
-        <div className='relative'>
-            <h2 className='flex justify-end mt-5 mr-20 text-xl'>Hello, </h2>
+        <div>
+        {props.isLoggedIn ? 
         <div className='flex items-center justify-center'>
             <div className='flex flex-col items-center w-full max-w-2xl'>
                 <h1 className='text-4xl text-bold mt-5'>Welcome to CV Girls' Birthdays!</h1>
                 <form onSubmit={handleSubmit} className='mt-5 flex flex-col w-full items-center'>
-                    <label htmlFor='input' className='text-xl'>Enter the full name of a Castro Valley friend.</label>
+                    <label htmlFor='name' className='text-xl'>Enter the full name of a Castro Valley friend.</label>
 
                     <input
                         type='text'
-                        id='input'
-                        value={input}
+                        name='name'
                         onChange={handleChange}
                         className='border border-black rounded mt-5 p-1 w-1/2'
                     />
@@ -53,8 +61,8 @@ const Birthday = () => {
                         <>
                         {match === true ? (
                             <>
-                                <h3 className={`mt-5 text-lg font-${matchedFriend.font} bg-${matchedFriend.color}-500`}>{matchedFriend.name}'s birthday is {matchedFriend.birthday}!</h3>
-                                <img className='mt-5 w-1/2 mx-auto' src={`${matchedFriend.photo}`}></img>
+                                <h3 className={`mt-5 text-lg text-${friend[0].color}-500`}>{friend[0].name}'s birthday is {friend[0].birthday}!</h3>
+                                <img className='mt-5 w-1/2 mx-auto' src={`http://localhost:5001/${friend[0].photo}`}></img>
                             </>
                         ) : (
                             <h3>That is not a CV friend. 😕</h3>
@@ -64,6 +72,12 @@ const Birthday = () => {
                 </form>
             </div>
         </div>
+        : 
+        <div>
+          <h1 className='text-6xl font-bold text-center mt-10'>Welcome to CV Girls' Birthdays!</h1>
+          <h3 className='text-xl text-center mt-32'>Sign up / Log in to view birthday information.</h3>
+        </div>
+        }
         </div>
     )
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import { useState } from 'react'
 
-const Login = () => {
+const Login = (props) => {
 
     const [formData, setFormData ] = useState({}) 
 
@@ -10,8 +10,9 @@ const Login = () => {
     }
 
     const handleSubmit = async (event) => {
+        console.log("in handle submit")
         event.preventDefault()
-        const submit = await handleLogin(formData)
+        await props.handleLogIn(formData)
     }
 
     return (
@@ -23,8 +24,7 @@ const Login = () => {
                 <label htmlFor='input' className='text-xl'>Username:</label>
                 <input
                     type='text'
-                    id='username'
-                    value={formData.username}
+                    name='username'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
@@ -32,15 +32,21 @@ const Login = () => {
                 <div className='flex flex-col'>
                 <label htmlFor='input' className='text-xl'>Password:</label>
                 <input
-                    type='text'
-                    id='password'
-                    value={formData.password}
+                    type='password'
+                    name='password'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
                 </div>
+                {props.message === 'Invalid credentials.' ? (
+                    <h1 className='text-center text-red-500'>The username or password provided is incorrect.</h1>
+                ) : props.message === 'Username not found.' ? (
+                    <h1 className='text-center text-red-500'>There is no account associated with the username.</h1>
+                ) : (
+                    null
+                )}
+                <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </form>
-            <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </div>
         </div>
     )

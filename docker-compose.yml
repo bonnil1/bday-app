@@ -14,6 +14,8 @@ services:
       dockerfile: Dockerfile
     ports: 
       - "5001:5001"
+    volumes:
+      - ./backend/uploads:/app/uploads 
     networks:
       - birthday-network
     environment:

@@ -1,42 +1,70 @@
+import Header from './components/Header'
+import Signup from './components/Signup'
+import Login from './components/Login'
 import Birthday from './pages/Birthday'
-import friends from './assets/friends.json'
 import { useState, useEffect } from 'react'
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 function App() {
 
-  const [data, setData] = useState(null)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [currentUser, setCurrentUser] = useState('')
+  const [message, setMessage] = useState('')
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    setData(friends.friends)
-  }, [])
+  const handleLogIn = async (user) => {
+    console.log("in handle login")
+    const response = await fetch ("http://localhost:5001/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"    
+      },
+      body: JSON.stringify(user)
+    })
+    const data = await response.json()
+    setCurrentUser(data.currentUser)
 
-  const sendFriends = async () => {
-    try {
-      console.log("before fetch")
-      const response = await fetch("http://localhost:5001/send-array", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ data: data })
-      })
-      console.log("after fetch")
+    setMessage(data.message)
+    console.log(data.message)
 
-      const goData = await response.json()
-      console.log("Sending data to backend.")
-
-    } catch(error) {
-      console.error("Error sending data to backend.")
+    if (response.status != 200) {
+      return data
+    } else {
+      console.log(data)
     }
+
+    localStorage.setItem("authToken", data.access_token)
+    localStorage.setItem("username", user.username)
+
+    setIsLoggedIn(true) //possibly can delete this line
+    navigate("/")
+  }  
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken")
+    localStorage.removeItem("username")
+    setIsLoggedIn(false)
+    navigate("/login")
   }
 
+  useEffect(()=>{
+    let token = localStorage.getItem("authToken")
+    if(!token) {
+      setIsLoggedIn(false) 
+    } else {
+      setIsLoggedIn(true) 
+    }
+  }, [])
+
   return (
-    <>
-      <Birthday />
-      <div className='flex items-center justify-center'>
-        <button onClick={sendFriends} className='flex justify-center bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5 w-1/4'>Send Data to Database</button>
+      <div>
+        <Header isLoggedIn={isLoggedIn} currentUser={currentUser} handleLogout={handleLogout}/>
+        <Routes>
+          <Route path="/signup" element={<Signup />}/>
+          <Route path="/login" element={<Login handleLogIn={handleLogIn} message={message}/>}/>
+          <Route path="/" element={<Birthday isLoggedIn={isLoggedIn} />}/>
+        </Routes>
       </div>
-    </>
   )
 }
 
