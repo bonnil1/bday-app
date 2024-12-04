@@ -10,17 +10,17 @@ const Birthday = (props) => {
     const [match, setMatch] = useState(false)
 
     const getFriend = async () => {
-        console.log("hitting get friend")
 
         const response = await fetch("http://localhost:5001/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: 'include',
             body: JSON.stringify({ name: input })
         })
         const data = await response.json()
-        console.log(data)
+        //console.log(data)
 
         if (Array.isArray(data)) {
             setMatch(true);
@@ -61,11 +61,11 @@ const Birthday = (props) => {
                         <>
                         {match === true ? (
                             <>
-                                <h3 className={`mt-5 text-lg text-${friend[0].color}-500`}>{friend[0].name}'s birthday is {friend[0].birthday}!</h3>
+                                <h3 className={`mt-5 text-lg`} style={{ color: `${friend[0].color}` }}>{friend[0].name}'s birthday is {friend[0].birthday}!</h3>
                                 <img className='mt-5 w-1/2 mx-auto' src={`http://localhost:5001/${friend[0].photo}`}></img>
                             </>
                         ) : (
-                            <h3>That is not a CV friend. 😕</h3>
+                            <h3 className='mt-5'>That is not a CV friend. 😕</h3>
                         )}
                         </>
                     )}

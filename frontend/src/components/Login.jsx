@@ -1,9 +1,15 @@
 import React from 'react'
 import { useState } from 'react'
+import { EyeIcon, EyeOffIcon } from '@heroicons/react/solid';
 
 const Login = (props) => {
 
     const [formData, setFormData ] = useState({}) 
+    const [viewpw, setViewpw] = useState(false)
+
+    const togglePassword = () => {
+        setViewpw(prevState => !prevState)
+    }
 
     const handleChange = (event) => {
         setFormData({...formData, [event.target.name]: event.target.value})
@@ -32,11 +38,14 @@ const Login = (props) => {
                 <div className='flex flex-col'>
                 <label htmlFor='input' className='text-xl'>Password:</label>
                 <input
-                    type='password'
+                    type={viewpw ? 'text' : 'password'}
                     name='password'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                 />
+                <button type="button" onClick={togglePassword} className='absolute ml-40 mt-11'>
+                    {viewpw ? (<EyeOffIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
+                </button>
                 </div>
                 {props.message === 'Invalid credentials.' ? (
                     <h1 className='text-center text-red-500'>The username or password provided is incorrect.</h1>

@@ -16,7 +16,10 @@ const app = express();
 const port = 5001;
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true  //cookie
+}));
 app.use(bodyParser.json());
 app.use(session({
     secret: process.env.SECRET,
@@ -69,7 +72,6 @@ app.post('/new-user', upload.single("photo"), (req, res) => {
 
   if (req.file) {
     console.log('File uploaded:', req.file);
-    console.log('Saved file path:', req.file.path);
     newUser.photo = req.file.path;
   } else {
     console.log('No file uploaded');
@@ -87,14 +89,15 @@ app.post('/new-user', upload.single("photo"), (req, res) => {
     if (result[0].count > 0 ) {
       return res.status(400).json({ message: "Username already exists." })
     } else {
-      const query = `
-        INSERT INTO friends (username, password, name, birthday, color, photo) 
-        VALUES (?, ?, ?, ?, ?, ?)
+      const insertQuery = `
+        INSERT INTO friends (role, username, password, email, name, birthday, color, photo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      pool.query(query, [newUser.username, newUser.password, newUser.name, newUser.birthday, newUser.color, newUser.photo], (err, result) => {
+      pool.query(insertQuery, [newUser.role, newUser.username, newUser.password, newUser.email, newUser.name, newUser.birthday, newUser.color, newUser.photo], (err, result) => {
         if (err) {
-          return res.status(500).json({ message: "500 error here in post backend" });
+          console.error(err);
+          return res.status(500).json({ message: '500 error here in post backend' });
         }
         res.status(200).json({ message: 'New user info. inserted successfully!' });
       })
@@ -106,17 +109,19 @@ app.post('/new-user', upload.single("photo"), (req, res) => {
 app.post('/login', (req, res) => {
   const user = req.body;
   
-  const query = 'SELECT password FROM friends WHERE username = ?';
+  const query = 'SELECT * FROM friends WHERE username = ?';
 
   pool.query(query, [user.username], (err, result) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     } 
     if (result.length === 0) {
-      return res.status(404).json({ message: 'Username not found.'});
+      return res.status(404).json({ message: 'Username not found.' });
     }
 
-    const storedpw = result[0].password // result returned as an array
+    // result returned as an array
+    const storedpw = result[0].password 
+    const storedrole = result[0].role
 
     bcrypt.compare(user.password, storedpw, (err, isMatch) => {
       if (err) {
@@ -127,10 +132,11 @@ app.post('/login', (req, res) => {
         req.session.user = user.username
         return res.status(200).json({ 
           currentUser: req.session.user, 
+          role: storedrole,
           message:'Log in successful.'
         });
       } else {
-        return res.status(401).json({ message: 'Invalid credentials.'});
+        return res.status(401).json({ message: 'Invalid credentials.' });
       }
     })
   })
@@ -138,20 +144,35 @@ app.post('/login', (req, res) => {
 
 // Post to get friend data
 app.post('/', (req, res) => {
-  const friend = req.body.name;
-  console.log(friend)
-  const query = 'SELECT * FROM friends WHERE name = ?';
+  if (req.session.user) {
+    const friend = req.body.name;
+    console.log(friend)
+    const query = 'SELECT * FROM friends WHERE name = ?';
 
-  pool.query(query, [friend], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Error getting friend data." });
-    } 
-    if (result.length === 0) {
-      return res.status(404).json({ message: 'That is not a CV friend.'});
-    }
-    res.json(result);
-  })
+    pool.query(query, [friend], (err, result) => {
+      if (err) {
+        return res.status(500).json({ message: 'Error getting friend data.' });
+      } 
+      if (result.length === 0) {
+        return res.status(404).json({ message: 'That is not a CV friend.' });
+      }
+      res.json(result);
+    })
+  } else {
+    return res.status(401).json({ message: 'You are not logged in.' });
+  }
 })
+
+// Post to log user out 
+app.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Logout failed.' });
+    }
+    res.clearCookie('connect.sid');
+    res.json({ message: 'Logout successful.' });
+  });
+});
 
 // Start the server
 app.listen(port, '0.0.0.0', () => {

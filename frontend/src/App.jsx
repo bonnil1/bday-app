@@ -19,6 +19,7 @@ function App() {
       headers: {
         "Content-Type": "application/json"    
       },
+      credentials: 'include',
       body: JSON.stringify(user)
     })
     const data = await response.json()
@@ -33,28 +34,32 @@ function App() {
       console.log(data)
     }
 
-    localStorage.setItem("authToken", data.access_token)
-    localStorage.setItem("username", user.username)
+    localStorage.setItem("username", data.currentUser)
+    localStorage.setItem("role", data.role)
 
-    setIsLoggedIn(true) //possibly can delete this line
+    setIsLoggedIn(true)
     navigate("/")
   }  
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken")
-    localStorage.removeItem("username")
-    setIsLoggedIn(false)
-    navigate("/login")
-  }
+  const handleLogout = async () => {
+    const response = await fetch('http://localhost:5001/logout', {
+      method: 'POST',
+      credentials: 'include'  
+    });
 
-  useEffect(()=>{
-    let token = localStorage.getItem("authToken")
-    if(!token) {
-      setIsLoggedIn(false) 
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log('Logout successful:', data.message);
+
+      localStorage.removeItem("username")
+      localStorage.removeItem("role")
+      setIsLoggedIn(false)
+      navigate("/login")
     } else {
-      setIsLoggedIn(true) 
+      console.error('Logout failed:', data.message);
     }
-  }, [])
+  }
 
   return (
       <div>
