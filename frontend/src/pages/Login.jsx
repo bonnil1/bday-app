@@ -47,15 +47,16 @@ const Login = (props) => {
                     {viewpw ? (<EyeOffIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
                 </button>
                 </div>
-                {props.message === 'Invalid credentials.' ? (
-                    <h1 className='text-center text-red-500'>The username or password provided is incorrect.</h1>
-                ) : props.message === 'Username not found.' ? (
-                    <h1 className='text-center text-red-500'>There is no account associated with the username.</h1>
-                ) : (
-                    null
-                )}
                 <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </form>
+            {props.message === 'Invalid credentials.' ? (
+                    <h1 className='text-center text-red-500 mt-3'>The username or password provided is incorrect.</h1>
+                ) : props.message === 'Username not found.' ? (
+                    <h1 className='text-center text-red-500 mt-3'>There is no account associated with the username.</h1>
+                ) : (
+                    null
+                )
+            }
             </div>
         </div>
     )

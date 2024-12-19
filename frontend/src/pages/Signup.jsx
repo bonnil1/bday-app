@@ -2,6 +2,8 @@ import React from 'react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EyeIcon, EyeOffIcon } from '@heroicons/react/solid';
+import DatePicker from 'react-datepicker'
+import "react-datepicker/dist/react-datepicker.css"
 
 const Signup = () => {
 
@@ -40,8 +42,17 @@ const Signup = () => {
                 setPwchange(true)
             }
         }
-        //console.log(formData)
+        console.log(formData)
     }
+
+    const handleDateChange = (date) => {
+        const cleanDate = new Date(date.setHours(0, 0, 0, 0));
+
+        setFormData((prevState) => ({
+          ...prevState,
+          birthday: cleanDate.toDateString(), 
+        }));
+    };
 
     const togglePassword = () => {
         setViewpw(prevState => !prevState)
@@ -84,7 +95,7 @@ const Signup = () => {
         const data = await response.json();
         console.log(data.message);
 
-        if (data.message === "Username already exists.") {
+        if (data.message === "Username already exists." || data.message === "Email already exists.") {
             setMessage(data.message);
         } else {
             navigate("/login");
@@ -118,11 +129,12 @@ const Signup = () => {
                 <input
                     type={viewpw ? 'text' : 'password'}
                     name='password'
+                    pattern='(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*[;:",`]).{8,}'
+                    title='The password must contain an upper and lower case letter, a number, and be 8 characters long.'
                     placeholder='Enter password.'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                     required
-                    pattern='(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.*[;:",`]).{8,}'
                 />
                 <button type="button" onClick={togglePassword} className='absolute ml-72 mt-11'>
                     {viewpw ? (<EyeOffIcon className="h-5 w-5" />) : (<EyeIcon className="h-5 w-5" />)}
@@ -131,13 +143,20 @@ const Signup = () => {
                 <div className='flex flex-col'>
                 <label htmlFor='password' className='text-xl'>Email:</label>
                 <input
-                    type='text'
+                    type='email'
                     name='email'
+                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.+-]+\.(com|edu|net|org)$"
+
                     placeholder='Example@email.com'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                     required
                 />
+                {message === "Email already exists." ? (
+                    <h1 className='text-xs text-red-500'>An account with this email already exists. Please log in.</h1>
+                ) : (
+                    null
+                )}
                 </div>
                 <div className='flex flex-col'>
                 <label htmlFor='password2' className='text-xl'>Retype Password:</label>
@@ -165,23 +184,27 @@ const Signup = () => {
                 <input
                     type='text'
                     name='name'
+                    pattern="^[A-Za-z ]+$"
                     placeholder='Enter full name.'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
                     required
-                    pattern="^[A-Za-z ]+$"
                 />
                 </div>
                 <div className='flex flex-col'>
                 <label htmlFor='birthday' className='text-xl'>Birthday:</label>
-                <input
-                    type='text'
+                <DatePicker
                     name='birthday'
-                    placeholder='January 1, 2024'
-                    onChange={handleChange}
-                    className='border border-black rounded mt-2 p-1'
+                    selected={formData.birthday}
+                    onChange={handleDateChange}
+                    dateFormat="MMMM d, yyyy"
+                    maxDate={new Date()}
+                    showYearDropdown
+                    scrollableYearDropdown
+                    yearDropdownItemNumber={100}
+                    placeholderText="Date of birth."
+                    className='border border-black rounded mt-2 p-1 w-full'
                     required
-                    pattern="^[A-Za-z0-9 ,]+$"
                 />
                 </div>
                 <div className='flex flex-col'>
@@ -229,3 +252,15 @@ const Signup = () => {
 }
 
 export default Signup
+
+{/*
+<input
+    type='text'
+    name='birthday'
+    placeholder='January 1, 2024'
+    onChange={handleChange}
+    className='border border-black rounded mt-2 p-1'
+    required
+    pattern="^[A-Za-z0-9 ,]+$"
+/>    
+*/}

@@ -27,6 +27,22 @@ services:
       - mysql
     command: ["sh", "-c", "while ! nc -z mysql 3306; do sleep 1; done; node server.js"]  # Wait for MySQL to be ready
 
+  python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    networks:
+      - birthday-network
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: birthday
+      MYSQL_DB: mydb
+    depends_on:
+      - mysql
+
   mysql:
     image: mysql:8
     environment:

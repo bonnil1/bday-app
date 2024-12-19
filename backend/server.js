@@ -8,6 +8,7 @@ import session from 'express-session';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import path from 'path'
+import fetch from 'node-fetch'
 
 dotenv.config();
 
@@ -50,7 +51,7 @@ pool.getConnection((err, connection) => {
   connection.release(); // Release the connection back to the pool
 });
 
-// Multer storage to save files locally
+// Multer storage to save photo files locally
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -78,31 +79,56 @@ app.post('/new-user', upload.single("photo"), (req, res) => {
     newUser.photo = null
   }
 
-  // query for existing username before inserting into the database
-  const query = 'SELECT COUNT(*) AS count FROM friends WHERE username = ?';
+  // query for existing username  / email before inserting into the database
+  const usernameQuery = 'SELECT COUNT(*) AS count FROM friends WHERE username = ?';
+  const emailQuery = 'SELECT COUNT(*) AS count FROM friends WHERE email = ?';
 
-  pool.query(query, [newUser.username], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Error occurred checking username in db." })
-    }
+  Promise.all([
+    new Promise((resolve, reject) => {
+      pool.query(usernameQuery, [newUser.username], (err, result) => {
+        if (err) {
+          reject({ message: "Error occurred checking username in db." });
+        }
+        resolve(result[0].count > 0 ? 'username' : null);
+      });
+    }),
+    new Promise((resolve, reject) => {
+      pool.query(emailQuery, [newUser.email], (err, result) => {
+        if (err) {
+          reject({ message: "Error occurred checking email in db." });
+        }
+        resolve(result[0].count > 0 ? 'email' : null);
+      });
+    })
+  ])
+    .then((results) => {
+      // If either username or email exists, send an appropriate response
+      if (results.includes('username')) {
+        return res.status(400).json({ message: "Username already exists." });
+      }
+      if (results.includes('email')) {
+        return res.status(400).json({ message: "Email already exists." });
+      }
   
-    if (result[0].count > 0 ) {
-      return res.status(400).json({ message: "Username already exists." })
-    } else {
+      // If neither exists, insert the new user
       const insertQuery = `
         INSERT INTO friends (role, username, password, email, name, birthday, color, photo) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
-
+  
       pool.query(insertQuery, [newUser.role, newUser.username, newUser.password, newUser.email, newUser.name, newUser.birthday, newUser.color, newUser.photo], (err, result) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ message: '500 error here in post backend' });
+          return res.status(500).json({ message: 'Error occurred while inserting user data.' });
         }
-        res.status(200).json({ message: 'New user info. inserted successfully!' });
-      })
-    }
-  })
+        res.status(200).json({ message: 'New user info inserted successfully!' });
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      return res.status(500).json({ message: err.message });
+    });
+  
 });
 
 // Post log in user data
@@ -163,6 +189,54 @@ app.post('/', (req, res) => {
   }
 })
 
+// Get friend usernames
+app.get('/friends', async (req, res) => {
+  if (req.session.user) {
+    try {
+      const response = await fetch("http://python:4000/friends"); 
+      console.log("backend reached fastapi")
+      const data = await response.json();
+      //console.log(data)
+
+      res.json(data);
+    } catch (error) {
+      return res.status(500).json({ message: 'Failed to fetch data from FastAPI.' });
+    }
+  } else {
+    return res.status(401).json({ message: 'You are not logged in.' });
+  }
+})
+
+// Delete user
+app.delete('/byeuser', async (req, res) => {
+  console.log("hitting delete user in backend")
+  if(req.session.user) { 
+    const username = req.body.username;
+    const loggedinuser = req.body.loggedinuser;
+
+    if (!username) {
+      return res.status(400).json({ message: 'Username is required.' });
+    }
+
+    const query = 'DELETE FROM friends WHERE username = ?'
+
+    if (req.session.user === loggedinuser) {
+      pool.query(query, [username], (err, result) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ message: 'Error deleting user from the database.' });
+        } else {
+          return res.status(200).json({ message: 'User deleted.' })
+        }
+      })
+    } else {
+      return res.status(403).json({ message: 'You do not have access to delete user.' })
+    }
+  } else {
+    return res.status(401).json({ message: 'You are not logged in.' });
+  }
+})
+
 // Post to log user out 
 app.post('/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -210,4 +284,28 @@ const storage = multer.diskStorage({
 })
 
 const upload = multer({ storage })
+
+
+pool.query(query, [newUser.username], (err, result) => {
+    if (err) {
+      return res.status(500).json({ message: "Error occurred checking username in db." })
+    }
+  
+    if (result[0].count > 0 ) {
+      return res.status(400).json({ message: "Username already exists." })
+    } else {
+      const insertQuery = `
+        INSERT INTO friends (role, username, password, email, name, birthday, color, photo) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      pool.query(insertQuery, [newUser.role, newUser.username, newUser.password, newUser.email, newUser.name, newUser.birthday, newUser.color, newUser.photo], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: '500 error here in post backend' });
+        }
+        res.status(200).json({ message: 'New user info inserted successfully!' });
+      })
+    }
+  })
 */
