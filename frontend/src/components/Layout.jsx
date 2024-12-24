@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 const Layout = ({ children }) => {
 
     const loggedinuser = localStorage.getItem("username")
+    const token = localStorage.getItem("token");
 
     // Login and Logout variables
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -33,17 +34,18 @@ const Layout = ({ children }) => {
     // Functions to handle log in and log out
     const handleLogIn = async (user) => {
         console.log("in handle login")
-        const response = await fetch ("http://localhost:5001/login", {
+        const response = await fetch ("http://localhost:4000/login", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"    
+            "Content-Type": "application/json",    
         },
         credentials: 'include',
         body: JSON.stringify(user)
         })
         const data = await response.json()
-        setCurrentUser(data.currentUser)
+        //console.log(data)
 
+        setCurrentUser(data.currentUser)
         setMessage(data.message)
         console.log(data.message)
 
@@ -53,6 +55,7 @@ const Layout = ({ children }) => {
         console.log(data)
         }
 
+        localStorage.setItem("token", data.token);
         localStorage.setItem("username", data.currentUser)
         localStorage.setItem("role", data.role)
 
@@ -61,7 +64,9 @@ const Layout = ({ children }) => {
     }  
 
     const handleLogout = async () => {
-        const response = await fetch('http://localhost:5001/logout', {
+        {/*commented out code is for express.js backend */}
+        {/* 
+        const response = await fetch('http://localhost:4000/logout', {
         method: 'POST',
         credentials: 'include'  
         });
@@ -70,25 +75,30 @@ const Layout = ({ children }) => {
 
         if (response.ok) {
         console.log('Logout successful:', data.message);
-
+        */}
+        localStorage.removeItem("token")
         localStorage.removeItem("username")
         localStorage.removeItem("role")
         setIsLoggedIn(false)
         setSubmitted(false)
+        setDeleted(false)
         setClick(false)
         navigate("/login")
+        {/*
         } else {
         console.error('Logout failed:', data.message);
         }
+         */}
     }
 
     // Function to handle form input and get user
     const getFriend = async () => {
 
-        const response = await fetch("http://localhost:5001/", {
+        const response = await fetch("http://localhost:4000/", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,   
             },
             credentials: 'include',
             body: JSON.stringify({ name: input })
@@ -99,7 +109,7 @@ const Layout = ({ children }) => {
         if (Array.isArray(data)) {
             setFound(true);
             setFriend(data);
-            setFriendun(data[0].username)
+            setFriendun(data[2])
         } else if (data && typeof data === 'object') {
             setFound(false);
         }
@@ -129,7 +139,10 @@ const Layout = ({ children }) => {
         console.log("hitting get all usernames in frontend")
         setClicked(false)
         setDeleted(false)
-        const response = await fetch("http://localhost:5001/friends", {
+        const response = await fetch("http://localhost:4000/friends", {
+            headers: {
+                "Authorization": `Bearer ${token}`,   
+            },
             credentials: 'include',
         })
         const data = await response.json();
@@ -144,10 +157,11 @@ const Layout = ({ children }) => {
     // Function to delete user
     const deleteUser = async () => {
         console.log("hitting delete user in frontend")
-        const response = await fetch("http://localhost:5001/byeuser", {
+        const response = await fetch("http://localhost:4000/byeuser", {
             method: 'DELETE',
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,  
             },
             credentials: 'include',
             body: JSON.stringify({ username: friendun, loggedinuser: loggedinuser })
@@ -161,6 +175,8 @@ const Layout = ({ children }) => {
         
         if (data.message === 'User deleted.') {
             setDeleted(true)
+            setSubmitted(false)
+            setClick(false)
         } 
     }
 
@@ -168,7 +184,7 @@ const Layout = ({ children }) => {
         <div className='flex flex-col h-screen'>
 
             {/* Header */}
-            <Header isLoggedIn={isLoggedIn} currentUser={currentUser} handleLogout={handleLogout} />
+            <Header isLoggedIn={isLoggedIn} currentUser={currentUser} handleLogout={handleLogout} handleChange={handleChange} handleSubmit={handleSubmit}/>
 
             <div className='flex flex-1'>
 
@@ -183,7 +199,7 @@ const Layout = ({ children }) => {
 
                 {/* Main Content */}
                 <div className='w-full'>
-                    {React.cloneElement(children, {handleLogIn, message, isLoggedIn, handleSubmit, handleChange, submitted, found, friend, friendun, click, usernames, clicked, deleted })}
+                    {React.cloneElement(children, {handleLogIn, message, isLoggedIn, submitted, found, friend, friendun, click, usernames, clicked, deleted })}
                 </div>
             </div>
         </div>

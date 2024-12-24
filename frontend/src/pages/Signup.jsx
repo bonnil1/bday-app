@@ -86,8 +86,9 @@ const Signup = () => {
         }
 
         //console.log(form)
+        console.log(form.get('photo'));
 
-        const response = await fetch("http://localhost:5001/new-user", {
+        const response = await fetch("http://localhost:4000/new-user", {
             method: "POST",
             body: form
         });
@@ -143,14 +144,15 @@ const Signup = () => {
                 <div className='flex flex-col'>
                 <label htmlFor='password' className='text-xl'>Email:</label>
                 <input
+                
                     type='email'
                     name='email'
-                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.+-]+\.(com|edu|net|org)$"
-
                     placeholder='Example@email.com'
-                    onChange={handleChange}
+                    title='Example@email.com'
+                    onChange={handleChange} 
+                    pattern="^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z]{2,}$" 
                     className='border border-black rounded mt-2 p-1'
-                    required
+                    required 
                 />
                 {message === "Email already exists." ? (
                     <h1 className='text-xs text-red-500'>An account with this email already exists. Please log in.</h1>
@@ -234,6 +236,7 @@ const Signup = () => {
                     name='photo'
                     onChange={handleChange}
                     className='border border-black rounded mt-2 p-1'
+                    required
                 />
                 {formData.photo && (
                     <img
@@ -263,4 +266,14 @@ export default Signup
     required
     pattern="^[A-Za-z0-9 ,]+$"
 />    
+*/}
+
+{/* 
+    type='email'
+    name='email'
+    pattern='^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i'
+    placeholder='Example@email.com'
+    onChange={handleChange}
+    className='border border-black rounded mt-2 p-1'
+    required
 */}

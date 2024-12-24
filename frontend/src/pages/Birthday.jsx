@@ -8,32 +8,22 @@ const Birthday = ({ isLoggedIn, handleChange, handleSubmit, submitted, found, fr
         <div className='flex items-center justify-center'>
             <div className='flex flex-col items-center w-full max-w-2xl'>
                 <h1 className='text-2xl sm:text-4xl font-bold mt-5'>Welcome to CV Girls' Birthdays!</h1>
-                <form onSubmit={handleSubmit} className='mt-5 flex flex-col w-full items-center'>
-                    <label htmlFor='name' className='text-lg sm:text-xl'>Enter the full name of a Castro Valley friend.</label>
-
-                    <input
-                        type='text'
-                        name='name'
-                        onChange={handleChange}
-                        className='border border-black rounded mt-5 p-1 w-1/2'
-                    />
-                    <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-sm sm:text-xl mt-5 w-1/4'>Submit</button>
-
+                <div className='mt-5 flex flex-col w-full items-center'>
                     {submitted && (
                         <>
                         {found === true ? (
                             <>
-                                <h3 className={`mt-5 text-md sm:text-lg`} style={{ color: `${friend[0].color}` }}>{friend[0].name}'s birthday is {friend[0].birthday}!</h3>
-                                <img className='mt-5 w-1/2 mx-auto' src={`http://localhost:5001/${friend[0].photo}`}></img>
-                                {/*deleted button here */}
-                                {deleted && (<h3 className='text-center text-red-500 mt-3'>User: {friend[0].username} deleted.</h3>)}
+                                <h3 className={`mt-5 text-md sm:text-lg`} style={{ color: `${friend[8]}` }}>{friend[6]}'s birthday is {friend[7]}!</h3>
+                                <img className='mt-5 w-1/2 mx-auto' src={`http://localhost:4000/${friend[9]}`}></img>
                             </>
                         ) : (
                             <h3 className='mt-5'>That is not a CV friend. 😕</h3>
                         )}
                         </>
                     )}
-                </form>
+                    {/*deleted button here */}
+                    {deleted && (<h3 className='text-center text-red-500 mt-3'>User: {friend[2]} deleted.</h3>)}
+                </div>
                 {/*Get Usernames Button*/}
                 {click === true ? (
                     <div className='bg-blue-300 px-6 py-6 shadow-md rounded-md border mt-5 mb-5'>
