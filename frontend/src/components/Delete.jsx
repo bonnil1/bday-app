@@ -5,7 +5,7 @@ const Delete = ({deleteUser, found, friendun}) => {
   const loggedinuser = localStorage.getItem("username")
   const role = localStorage.getItem("role")
 
-  console.log(friendun)
+  //console.log(friendun)
     
   return (
     <div className='w-3/4 md:ml-10'>

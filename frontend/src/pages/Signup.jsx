@@ -16,7 +16,8 @@ const Signup = () => {
         name: '',
         birthday: '',
         color: '',
-        photo: null
+        photo: null,
+        address: ''
     })
     //const [role, setRole] = useState('')
     const [viewpw, setViewpw] = useState(false)
@@ -142,7 +143,7 @@ const Signup = () => {
                 </button>
                 </div>
                 <div className='flex flex-col'>
-                <label htmlFor='password' className='text-xl'>Email:</label>
+                <label htmlFor='email' className='text-xl'>Email:</label>
                 <input
                 
                     type='email'
@@ -246,6 +247,17 @@ const Signup = () => {
                         style={{ width: '100px', height: '150px', objectFit: 'cover' }}
                     />
                         )}
+                </div>
+                <div className='flex flex-col md:col-span-2'>
+                <label htmlFor='address' className='text-xl'>Address:</label>
+                    <input
+                        type='text'
+                        name='address'
+                        placeholder='Enter address of your fav boba place: 1234 Boba Street, Castro Valley, CA 94546'
+                        title='1234 Boba Street, Castro Valley, CA 94546'
+                        onChange={handleChange}
+                        className='border border-black rounded mt-2 p-1'
+                    />
                 </div>
                 <button type='submit' className='bg-blue-500 text-white py-1.5 px-2 border rounded text-xl mt-5'>Submit</button>
             </form>

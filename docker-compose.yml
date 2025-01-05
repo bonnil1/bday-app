@@ -33,6 +33,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4000:4000"
+    volumes:
+      - ./python/uploads:/app/uploads
     networks:
       - birthday-network
     environment:

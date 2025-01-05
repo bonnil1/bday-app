@@ -105,7 +105,9 @@ async def create_user(
     birthday: str = Form(...),
     color: str = Form(...),
     photo: UploadFile = File(...),
+    address: str = Form(...),
 ):
+    print(address)
 
     connect = None
     cursor = None
@@ -153,9 +155,9 @@ async def create_user(
 
         # Insert new user into the database
         await cursor.execute("""
-            INSERT INTO friends (role, username, password, email, name, birthday, color, photo) 
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (role, username, hashed_password, email, name, birthday, color, photo_db))
+            INSERT INTO friends (role, username, password, email, name, birthday, color, photo, address) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (role, username, hashed_password, email, name, birthday, color, photo_db, address))
         
         await connect.commit()
         
@@ -234,9 +236,128 @@ async def log_in(request: Request):
         if connect:
             connect.close()
 
-# Get specific user
+# Get prefilled profile
+@app.get("/user/{username}")
+async def get_data(username: str, token: str = Depends(oauth2_scheme)):
+    verify_token(token)
+    connect = None
+    cursor = None
+
+    try:
+        # Get a connection to the database
+        connect = await get_db_connection()
+        cursor = await connect.cursor()
+        
+        # Execute the query asynchronously
+        await cursor.execute("SELECT * FROM friends WHERE username = %s", (username, ))
+
+        # Fetch username result
+        user = await cursor.fetchone()
+
+        # Error handling 
+        if not user: 
+            return JSONResponse(status_code=404, content={"message": "Username not found."})
+
+        column = [desc[0] for desc in cursor.description]
+        print(user)
+        print(column)
+        #print(type(friend))
+
+        result = dict(zip(column, user))
+        print(result)
+        
+        return result
+    
+    except Exception as error:
+        # Rollback in case of any error
+        if connect:
+            await connect.rollback()
+        
+        # Return error message in case of exception
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(error)}")
+    
+    finally:
+        # Close the cursor and connection
+        if cursor:
+            await cursor.close()
+        if connect:
+            connect.close()
+
+# Update profile
+@app.put("/user/{username}")
+async def update_data(username: str, token: str = Depends(oauth2_scheme),
+    name: str = Form(...),
+    birthday: str = Form(...),
+    color: str = Form(...),
+    address: str = Form(...),
+    boba: str = Form(...),
+    artist: str = Form(...),
+    game: str = Form(...),
+    photo: UploadFile = File(None),
+    ):
+    verify_token(token)
+    connect = None
+    cursor = None
+
+    try:
+        # Get a connection to the database
+        connect = await get_db_connection()
+        cursor = await connect.cursor()
+
+        photo_db = None
+
+        if photo:
+            # A new photo has been uploaded
+            print(f"Received new photo: {photo.filename}")
+            # Create a unique filename using the current timestamp
+            filename = f"{int(datetime.now().timestamp())}{os.path.splitext(photo.filename)[1]}"
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            print(f"Saving photo to {file_path}")
+
+            # Save the photo in the uploads directory
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(photo.file, buffer)
+                print("Photo saved successfully")
+
+            # Set the photo path for the database
+            photo_db = file_path
+        else:
+            # If no new photo is uploaded, use the existing photo from the database
+            print("No new photo received, keeping the existing photo")
+            # Optionally, you can query the current photo path from the database if needed
+            # e.g., `photo_db = get_existing_photo_path_from_db(username)`
+            photo_db = None
+
+        # First, update the existing user fields
+        await cursor.execute("""
+            UPDATE friends SET name = %s, birthday = %s, color = %s, address = %s, boba = %s, artist = %s, game = %s, photo = COALESCE(%s, photo)
+            WHERE username = %s
+        """, (name, birthday, color, address, boba, artist, game, photo_db, username))
+
+        await connect.commit()
+
+        return JSONResponse(status_code=200, content={"message": "User updated and new user data added successfully."})
+
+
+    except Exception as error:
+        # Rollback in case of any error
+        if connect:
+            await connect.rollback()
+        
+        # Return error message in case of exception
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(error)}")
+    
+    finally:
+        # Close the cursor and connection
+        if cursor:
+            await cursor.close()
+        if connect:
+            connect.close()
+    
+
+# Get specific friend
 # change to a get request!
-@app.post("/")
+@app.post("/friend")
 async def get_friend(request: Request, token: str = Depends(oauth2_scheme)): 
     verify_token(token)
     connect = None
@@ -259,14 +380,74 @@ async def get_friend(request: Request, token: str = Depends(oauth2_scheme)):
 
         # Fetch username result
         friend = await cursor.fetchone()
-        print(friend)
-        print(type(friend))
 
         # Error handling 
         if not friend: 
             return JSONResponse(status_code=404, content={"message": "That is not a CV friend."})
+
+        column = [desc[0] for desc in cursor.description]
+        print(friend)
+        print(column)
+        #print(type(friend))
+
+        result = dict(zip(column, friend))
+        print(result)
         
-        return friend
+        return result
+    
+    except Exception as error:
+        # Rollback in case of any error
+        if connect:
+            await connect.rollback()
+        
+        # Return error message in case of exception
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(error)}")
+    
+    finally:
+        # Close the cursor and connection
+        if cursor:
+            await cursor.close()
+        if connect:
+            connect.close()
+
+# Get specific user
+@app.post("/user")
+async def get_user(request: Request, token: str = Depends(oauth2_scheme)): 
+    verify_token(token)
+    connect = None
+    cursor = None
+
+    try:
+        # Extract request body data
+        data = await request.json()
+
+        # Extract username from request body
+        username = data["username"]
+
+        # Get a connection to the database
+        connect = await get_db_connection()
+        cursor = await connect.cursor()
+        print(type(cursor))
+
+        # Execute the query asynchronously
+        await cursor.execute("SELECT * FROM friends WHERE username = %s", (username, ))
+
+        # Fetch username result
+        user = await cursor.fetchone()
+
+        # Error handling 
+        if not user: 
+            return JSONResponse(status_code=404, content={"message": "Username not found."})
+
+        column = [desc[0] for desc in cursor.description]
+        print(user)
+        print(column)
+        #print(type(friend))
+
+        result = dict(zip(column, user))
+        print(result)
+        
+        return result
     
     except Exception as error:
         # Rollback in case of any error

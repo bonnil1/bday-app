@@ -20,7 +20,9 @@ const Header = (props) => {
     const loggedIn = (
         
         <div className='flex items-center justify-between w-full mr-10'>
-            <h3 className='text-3xl ml-10'>🦋</h3>
+            <Link to="/" onClick={() => props.setSubmitted(false)} className='text-3xl ml-10'>
+                🦋
+            </Link>
             <div>
             <form onSubmit={props.handleSubmit} className='flex'>
                     <input
@@ -41,9 +43,13 @@ const Header = (props) => {
                     {role === "admin_role" && <h6 className='text-xs text-blue-500'>admin</h6>}
                 </div>
                 <div className={`relative ${isMobileMenuOpen ? 'block' : 'hidden'}`} id="mobile-menu">
-                    <div className="absolute right-0 mt-10 w-20 sm:w-24 bg-blue-500 border border-gray-300 shadow-md rounded-xl">
+                    <div className="absolute right-0 mt-10 mr-3 w-20 sm:w-24 bg-blue-500 border border-gray-300 shadow-md rounded-md">
                         <div className="px-2 pt-2 pb-1">
-                            <Link to="/login" onClick={() => { props.handleLogout(); closeMenu();}} className='text-md sm:text-xl block text-white hover:underline border-c border-gray-300 px-1 py-0.5'>
+                            <Link to="/profile" onClick={closeMenu} className='text-md sm:text-lg block text-white hover:underline border-c border-gray-300 px-1 py-0.5'>
+                                Profile
+                            </Link>
+                            <hr className='my-2'/>
+                            <Link to="/login" onClick={() => { props.handleLogout(); closeMenu();}} className='text-md sm:text-lg block text-white hover:underline border-c border-gray-300 px-1 py-0.5'>
                                 Logout
                             </Link>
                         </div>

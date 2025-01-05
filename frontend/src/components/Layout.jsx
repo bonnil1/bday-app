@@ -1,8 +1,8 @@
 import React from 'react'
 import Header from './Header';
-import Usernames from './Usernames';
-import Delete from './Delete';
-import { useState, useEffect } from 'react'
+import Usernames from './Usernames'
+import Delete from './Delete'
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Layout = ({ children }) => {
@@ -22,6 +22,7 @@ const Layout = ({ children }) => {
     const [found, setFound] = useState(false)
     const [friend, setFriend] = useState({})
     const [friendun, setFriendun] = useState('')
+    const [friendaddress, setFriendaddress] = useState('')
     const [click, setClick] = useState(false)
 
     // Get all username variables
@@ -94,7 +95,7 @@ const Layout = ({ children }) => {
     // Function to handle form input and get user
     const getFriend = async () => {
 
-        const response = await fetch("http://localhost:4000/", {
+        const response = await fetch("http://localhost:4000/friend", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -105,13 +106,15 @@ const Layout = ({ children }) => {
         })
         const data = await response.json()
         console.log(data)
+        console.log(data.message)
 
-        if (Array.isArray(data)) {
+        if (data.message === 'That is not a CV friend.') {
+            setFound(false);
+        } else if (data && typeof data === 'object') {
             setFound(true);
             setFriend(data);
-            setFriendun(data[2])
-        } else if (data && typeof data === 'object') {
-            setFound(false);
+            setFriendun(data.username)
+            setFriendaddress(data.address)
         }
     }
 
@@ -133,6 +136,35 @@ const Layout = ({ children }) => {
             setClick(true);
         }
     }, [clicked]);
+
+    // Get friend using username
+    const getUser = async (username) => {
+
+        const response = await fetch("http://localhost:4000/user", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,   
+            },
+            credentials: 'include',
+            body: JSON.stringify({ username })
+        })
+        const data = await response.json()
+        console.log(data)
+        console.log(data.message)
+
+        if (data.message === 'Username not found.') {
+            setFound(false);
+        } else if (data && typeof data === 'object') {
+            setFound(true);
+            setFriend(data);
+            setFriendun(data.username)
+            setFriendaddress(data.address)
+            setSubmitted(true)
+            //setClick(false)
+            setDeleted(false)
+        }
+    }
 
     // Function to get all usernames 
     const getUsers = async () => {
@@ -184,7 +216,7 @@ const Layout = ({ children }) => {
         <div className='flex flex-col h-screen'>
 
             {/* Header */}
-            <Header isLoggedIn={isLoggedIn} currentUser={currentUser} handleLogout={handleLogout} handleChange={handleChange} handleSubmit={handleSubmit}/>
+            <Header isLoggedIn={isLoggedIn} currentUser={currentUser} handleLogout={handleLogout} handleChange={handleChange} handleSubmit={handleSubmit} setSubmitted={setSubmitted}/>
 
             <div className='flex flex-1'>
 
@@ -199,7 +231,7 @@ const Layout = ({ children }) => {
 
                 {/* Main Content */}
                 <div className='w-full'>
-                    {React.cloneElement(children, {handleLogIn, message, isLoggedIn, submitted, found, friend, friendun, click, usernames, clicked, deleted })}
+                    {React.cloneElement(children, {handleLogIn, message, isLoggedIn, submitted, found, friend, friendun, click, usernames, clicked, deleted, friendaddress, getUser })}
                 </div>
             </div>
         </div>
